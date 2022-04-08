@@ -25,14 +25,12 @@ async def make_calendar(client: SaturnLiveClient, school_id: str, student_id: in
         None,
         lambda: Calendar(creator=str(f"saturn-{school_id}-{student_id}"))
     )
-    tz: tzinfo = get_localzone()
+    localzone: tzinfo = get_localzone()
 
     calendar.extra.extend(
         [
             ContentLine('X-WR-CALNAME', value=f"Saturn {school_name} Schedule"),
-            ContentLine('X-WR-TIMEZONE', value=str(tz)),
             ContentLine('X-WR-CALDESC', value=f"Saturn {school_name} Schedule"),
-            ContentLine("COLOR", value="#7126f8"),
         ]
     )
 
@@ -52,10 +50,10 @@ async def make_calendar(client: SaturnLiveClient, school_id: str, student_id: in
                     class_event: Event = Event(
                         name=f"Period {period.name} - {def_course.nickname or course.name} - {def_course.room}",
                         begin=period.start_time.replace(
-                            year=day.date.year, month=day.date.month, day=day.date.day, tzinfo=tz
+                            year=day.date.year, month=day.date.month, day=day.date.day, tzinfo=localzone
                         ).astimezone(UTC),
                         end=period.end_time.replace(
-                            year=day.date.year, month=day.date.month, day=day.date.day, tzinfo=tz
+                            year=day.date.year, month=day.date.month, day=day.date.day, tzinfo=localzone
                         ).astimezone(UTC),
                         attendees=[
                             Attendee(common_name=student.name, email=student.email) for student in def_course.classmates
@@ -69,10 +67,10 @@ async def make_calendar(client: SaturnLiveClient, school_id: str, student_id: in
                         Event(
                             name=period.name,
                             begin=period.start_time.replace(
-                                year=day.date.year, month=day.date.month, day=day.date.day, tzinfo=tz
+                                year=day.date.year, month=day.date.month, day=day.date.day, tzinfo=localzone
                             ).astimezone(UTC),
                             end=period.end_time.replace(
-                                year=day.date.year, month=day.date.month, day=day.date.day, tzinfo=tz
+                                year=day.date.year, month=day.date.month, day=day.date.day, tzinfo=localzone
                             ).astimezone(UTC),
                         )
                     )
