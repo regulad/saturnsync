@@ -13,6 +13,9 @@ python = "^3.10"
 saturnscrape = "^0.1.8"
 aiohttp = "^3.8.1"
 ics = "^0.7"
+motor = "^2.5.1"
+dnspython = "^2.1.0"
+PyJWT = { extras = ["crypto"], version = "^2.3.0" }
 
 [tool.poetry.dev-dependencies]
 

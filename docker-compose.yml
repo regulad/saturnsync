@@ -1,0 +1,17 @@
+version: '3'
+services:
+  api:
+    image: ghcr.io/regulad/saturnsync:latest
+    environment:
+      - SATURN_TOKEN=saturn
+      - SATURN_REFRESH_TOKEN=saturn
+    ports:
+      - "8081:8081/tcp"
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017/tcp"
+    volumes:
+      - db:/data/db
+volumes:
+  db:

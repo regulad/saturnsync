@@ -1,66 +1,87 @@
-import os
-from asyncio import get_event_loop, AbstractEventLoop, run
-from typing import cast
+"""
+Regulad's aiohttp-mongodb-base
+https://github.com/regulad/aiohttp-mongodb-base
 
-from ics import *
-from saturnscrape import *
+If you want to run the webserver with an external provisioning/management system like Gunicorn,
+run the awaitable create_app.
+"""
+
+import logging
+from os import environ
+from typing import Mapping
+
+from aiohttp import web
+from jwt import decode
+from motor.motor_asyncio import AsyncIOMotorClient
+from saturnscrape import SaturnLiveClient
+
+from routes import ROUTES
+from utils.middlewares import *
+from utils.signals import *
+
+CONFIGURATION_PROVIDER: Mapping[str, str] = environ
+CONFIGURATION_KEY_PREFIX: str = "SATURN"
 
 
-async def make_calendar(client: SaturnLiveClient, school_id: str, student_id: int) -> Calendar:
-    """Make an ICS calendar from a calendar on https://saturn.live."""
-    loop: AbstractEventLoop = get_event_loop()
-    calendar: Calendar = await loop.run_in_executor(
-        None,
-        lambda: Calendar(creator=str(f"saturn-{school_id}-{student_id}"))
+# This could be a JSON or YAML file if you want to to be.
+
+
+async def create_app():
+    """Create an app and configure it."""
+
+    # Create the app
+    app = web.Application(middlewares=MIDDLEWARE_CHAIN)
+
+    # Config
+    app["database_connection"] = AsyncIOMotorClient(
+        CONFIGURATION_PROVIDER.get(f"{CONFIGURATION_KEY_PREFIX}_URI", "mongodb://mongo")
     )
+    app["database"] = app["database_connection"][
+        CONFIGURATION_PROVIDER.get(
+            f"{CONFIGURATION_KEY_PREFIX}_DB", CONFIGURATION_KEY_PREFIX
+        )
+    ]
 
-    calendar_days: list[CalendarDay] = await client.get_calendar(school_id)
-    schedules: list[BellSchedule] = await client.get_schedules(student_id, include_chats=False)
+    # Token management
+    given_token: str = CONFIGURATION_PROVIDER[f"{CONFIGURATION_KEY_PREFIX}_TOKEN"]
+    decoded_token: dict = decode(given_token, options={'verify_signature': False}, algorithms=["HS256"])
+    maybe_token: dict | None = await app["database"]["token"].find_one({})
 
-    for day in calendar_days:
-        if day.schedule and not day.is_canceled:
-            bell_schedule: BellSchedule = next(filter(lambda x: x.id == day.schedule.id, schedules))
+    if maybe_token:
+        decoded_maybe_token: dict = decode(maybe_token["token"], options={'verify_signature': False},
+                                           algorithms=["HS256"])
+        if decoded_maybe_token["exp"] > decoded_token["exp"]:
+            given_token: str = maybe_token["token"]
+        else:
+            await app["database"]["token"].delete_one({"_id": maybe_token["_id"]})
 
-            all_day_event: Event = Event(name=bell_schedule.display_name, begin=day.date, end=day.date)
-            all_day_event.make_all_day()
-            calendar.events.add(all_day_event)
+    # Register client
+    app["client"] = SaturnLiveClient(given_token, CONFIGURATION_PROVIDER[f"{CONFIGURATION_KEY_PREFIX}_REFRESH_TOKEN"])
 
-            for period in bell_schedule.periods:
-                if period.instance:
-                    def_course: DefinedCourse = period.instance
-                    course: Course = def_course.course
+    async def update_token(token: str):
+        await app["database"]["token"].delete_many("{}")
+        await app["database"]["token"].insert_one({"token": token})
 
-                    class_event: Event = Event(
-                        name=f"Period {period.name} - {def_course.nickname or course.name} - {def_course.room}",
-                        begin=period.start_time.replace(year=day.date.year, month=day.date.month, day=day.date.day),
-                        end=period.end_time.replace(year=day.date.year, month=day.date.month, day=day.date.day),
-                        attendees=[
-                            Attendee(common_name=student.name, email=student.email) for student in def_course.classmates
-                        ],
-                        description="Staff: " + ", ".join(map(lambda x: x.name, def_course.staff))
-                    )
+    app["client"].on_token_change = update_token
 
-                    calendar.events.add(class_event)
-                else:
-                    calendar.events.add(
-                        Event(
-                            name=period.name,
-                            begin=period.start_time.replace(year=day.date.year, month=day.date.month, day=day.date.day),
-                            end=period.end_time.replace(year=day.date.year, month=day.date.month, day=day.date.day),
-                        )
-                    )
+    # Routes
+    app.add_routes(ROUTES)
 
-    return calendar
+    # Signals
+    app.on_response_prepare.extend(ON_RESPONSE_PREPARE_SIGNALS)
+
+    app.on_cleanup.extend(ON_CLEANUP_SIGNALS)
+
+    # Off we go!
+    return app
 
 
 if __name__ == "__main__":
-    async def runnable():
-        client: SaturnLiveClient = SaturnLiveClient(os.environ["SATURN_TOKEN"], os.environ["SATURN_REFRESH_TOKEN"])
-        student: Student = await client.get_student("me")
-        full_student: FullStudent = cast(FullStudent, student)
-        calendar: Calendar = await make_calendar(client, full_student.school_id, full_student.id)
-        with open("calendar.ics", "w") as f:
-            f.writelines(calendar)
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s:%(levelname)s:%(name)s: %(message)s"
+    )
 
+    port = int(CONFIGURATION_PROVIDER.get(f"{CONFIGURATION_KEY_PREFIX}_PORT", "8081"))
+    host = CONFIGURATION_PROVIDER.get(f"{CONFIGURATION_KEY_PREFIX}_HOST", "0.0.0.0")
 
-    run(runnable())
+    web.run_app(create_app(), host=host, port=port)
