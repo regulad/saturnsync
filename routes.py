@@ -3,7 +3,7 @@ from asyncio import get_running_loop
 from aiohttp import web
 from ics import Calendar
 
-from utils.calendar import *
+from saturnscrape.utils import make_calendar
 
 ROUTES: web.RouteTableDef = web.RouteTableDef()
 

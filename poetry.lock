@@ -1,4 +1,12 @@
 [[package]]
+name = "aiofiles"
+version = "0.8.0"
+description = "File support for asyncio."
+category = "main"
+optional = false
+python-versions = ">=3.6,<4.0"
+
+[[package]]
 name = "aiohttp"
 version = "3.8.1"
 description = "Async http client/server framework (asyncio)"
@@ -246,15 +254,21 @@ tzdata = {version = "*", markers = "python_version >= \"3.6\""}
 
 [[package]]
 name = "saturnscrape"
-version = "0.1.8"
+version = "1.0.0"
 description = "Scrapes information from https://saturn.live, a collaborate school scheduling system."
 category = "main"
 optional = false
 python-versions = ">=3.10,<4.0"
 
 [package.dependencies]
+aiofiles = ">=0.8.0,<0.9.0"
 aiohttp = ">=3.8.1,<4.0.0"
+arrow = ">=0.11,<0.15"
+ics = ">=0.7,<0.8"
 PyJWT = {version = ">=2.3.0,<3.0.0", extras = ["crypto"]}
+pytz = ">=2022.1,<2023.0"
+tzlocal = ">=4.2,<5.0"
+vobject = ">=0.9.6,<0.10.0"
 
 [[package]]
 name = "six"
@@ -300,6 +314,17 @@ devenv = ["black", "pyroma", "pytest-cov", "zest.releaser"]
 test = ["pytest-mock (>=3.3)", "pytest (>=4.3)"]
 
 [[package]]
+name = "vobject"
+version = "0.9.6.1"
+description = "A full-featured Python package for parsing and creating iCalendar and vCard files"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+python-dateutil = ">=2.4.0"
+
+[[package]]
 name = "yarl"
 version = "1.7.2"
 description = "Yet another URL library"
@@ -314,9 +339,13 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "6ac88e5eb9e3a8cc71ff4e581640fa38c5c3ee41e823b294115d17884eefd478"
+content-hash = "54d524925e706e6f3a745e0da263872172240ac24c6db8a97cdea97ef8c11917"
 
 [metadata.files]
+aiofiles = [
+    {file = "aiofiles-0.8.0-py3-none-any.whl", hash = "sha256:7a973fc22b29e9962d0897805ace5856e6a566ab1f0c8e5c91ff6c866519c937"},
+    {file = "aiofiles-0.8.0.tar.gz", hash = "sha256:8334f23235248a3b2e83b2c3a78a22674f39969b96397126cc93664d9a901e59"},
+]
 aiohttp = [
     {file = "aiohttp-3.8.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:1ed0b6477896559f17b9eaeb6d38e07f7f9ffe40b9f0f9627ae8b9926ae260a8"},
     {file = "aiohttp-3.8.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:7dadf3c307b31e0e61689cbf9e06be7a867c563d5a63ce9dca578f956609abf8"},
@@ -754,8 +783,8 @@ pytz-deprecation-shim = [
     {file = "pytz_deprecation_shim-0.1.0.post0.tar.gz", hash = "sha256:af097bae1b616dde5c5744441e2ddc69e74dfdcb0c263129610d85b87445a59d"},
 ]
 saturnscrape = [
-    {file = "saturnscrape-0.1.8-py3-none-any.whl", hash = "sha256:d4739485824529fd294cbdd103ab393c1c4a8acbc1e8705056b3f5a8209540b5"},
-    {file = "saturnscrape-0.1.8.tar.gz", hash = "sha256:7a15c4af9759ba4fe7c5f11b3ee08ae6d205e73a901b414ae267cdd2b2dca59a"},
+    {file = "saturnscrape-1.0.0-py3-none-any.whl", hash = "sha256:fe84afd0d7cdbe7849abaf7d3c7c35a3b87b927663566cd7515387b2c3f310b0"},
+    {file = "saturnscrape-1.0.0.tar.gz", hash = "sha256:803ce8d4e756c531123b9d1d4ac8e25f7fd6700e07fcef5cc74ab03d3e50f2c7"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
@@ -772,6 +801,9 @@ tzdata = [
 tzlocal = [
     {file = "tzlocal-4.2-py3-none-any.whl", hash = "sha256:89885494684c929d9191c57aa27502afc87a579be5cdd3225c77c463ea043745"},
     {file = "tzlocal-4.2.tar.gz", hash = "sha256:ee5842fa3a795f023514ac2d801c4a81d1743bbe642e3940143326b3a00addd7"},
+]
+vobject = [
+    {file = "vobject-0.9.6.1.tar.gz", hash = "sha256:96512aec74b90abb71f6b53898dd7fe47300cc940104c4f79148f0671f790101"},
 ]
 yarl = [
     {file = "yarl-1.7.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:f2a8508f7350512434e41065684076f640ecce176d262a7d54f0da41d99c5a95"},
