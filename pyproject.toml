@@ -15,6 +15,7 @@ aiohttp = "^3.8.1"
 ics = "^0.7"
 motor = "^2.5.1"
 dnspython = "^2.1.0"
+vobject = "^0.9.6"
 
 [tool.poetry.dev-dependencies]
 
