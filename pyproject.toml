@@ -10,10 +10,10 @@ repository = "https://github.com/regulad/saturnsync"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-saturnscrape = "^1.0.0"
+saturnscrape = "^1.2.0"
 aiohttp = "^3.8.1"
 ics = "^0.7"
-motor = "^2.5.1"
+motor = "^3.0.0"
 dnspython = "^2.1.0"
 vobject = "^0.9.6"
 
